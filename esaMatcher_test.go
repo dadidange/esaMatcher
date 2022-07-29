@@ -15,10 +15,21 @@ func TestDebug(t *testing.T){
 	var e Esa
 
 	for _,seq := range s {
-		e = NewEsa(seq, "SaDivSufSort")
+		e = NewEsa(seq, "SaSais")
 		fmt.Printf("\nESA for %s\n", seq)
 		e.Print(0)
 	}
+}
+
+func TestDebug2(t *testing.T){
+	s1 := []byte("ACTTGACAA")//ranseq
+	
+	 
+	s := Sa(s1, "SaSais")
+	fmt.Println(s)
+
+	s = Sa(s1, "SaDivSufSort")
+	fmt.Println(s)
 }
 
 

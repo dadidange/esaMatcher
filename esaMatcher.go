@@ -1,7 +1,8 @@
 package esaMatcher
 
 /*
-#cgo LDFLAGS: -ldivsufsort64 
+#cgo CFLAGS: -I/usr/local/include
+#cgo LDFLAGS: -ldivsufsort64 -L/usr/local/include/ -lsais
 #include <divsufsort64.h>
 #include <libsais.h>
 #include <stdlib.h>
@@ -32,15 +33,7 @@ func NewEsa(s []byte, saLib string) Esa {
 	strandSize := len(s)
 	s = append(s, '$')
 
-	var sa []int
-	if saLib == "SaDivSufSort" {
-		sa = SaDivSufSort(s)
-	} else if saLib == "SaLibSais" {
-
-	} else {
-		s := "Current options are:\n\t-SaDivSufSort\n\t-SaLibSais"
-		log.Fatalf("library saLib = %s not defined to compute SA\n%s\n", saLib, s)
-	}
+	sa := Sa(s, saLib)
 	lcp := Lcp(s, sa)
 	// Add last element to lcp if necessary
 	if lcp[len(lcp)-1] != -1 {
@@ -83,27 +76,21 @@ func (e *Esa) Print(numSeq int) {
 	}
 }
 
-
-
-func SaDivSufSort(t []byte) []int {
+func Sa(t[]byte, method string) []int{
 	var sa []int
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&t))
-	ct := (*C.sauchar_t)(unsafe.Pointer(header.Data))
-	n := len(t)
-	csa := (*C.saidx64_t)(C.malloc(C.size_t(n * C.sizeof_saidx64_t)))
-	cn := C.saidx64_t(n)
-	err := int(C.divsufsort64(ct, csa, cn))
-	if err != 0 {
-		log.Fatalf("divsufsort failed with code %d\n", err)
+	if method == "SaDivSufSort" {
+		sa = saDivSufSort(t)
+	} else if method == "SaSais" {
+		sa = saSais(t)
+	} else {
+		s := "Current options are:\n\t-SaDivSufSort\n\t-SaSais"
+		log.Fatalf("library saLib = %s not defined to compute SA\n%s\n", method, s)
 	}
-	header = (*reflect.SliceHeader)((unsafe.Pointer(&sa)))
-	header.Cap = n
-	header.Len = n
-	header.Data = uintptr(unsafe.Pointer(csa))
 	return sa
 }
 
 func Lcp(t []byte, sa []int) []int {
+	//from https://github.com/EvolBioInf/esa/
 	n := len(t)
 	lcp := make([]int, n)
 	isa := make([]int, n)
@@ -166,4 +153,53 @@ func Cld(lcp []int) []int {
 		push(k)
 	}
 	return cld
+}
+
+func saSais(t[]byte) []int{
+	// var sa []int
+	n := len(t)
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&t))
+	ct := (*C.uint8_t) (unsafe.Pointer(sh.Data))
+	csa := (*C.int32_t)(C.malloc(C.size_t(n*C.sizeof_int32_t)))
+	cn := C.int32_t(n)
+	cz := C.int32_t(0)
+	czp := (*C.int32_t) (nil)
+	err := int(C.libsais(ct, csa, cn, cz, czp))
+	if err != 0 {
+		log.Fatalf("divsufsort failed with code %d\n", err)
+	}
+
+	var sa []int32
+
+	sh = (*reflect.SliceHeader)((unsafe.Pointer(&sa)))
+	sh.Cap = n
+	sh.Len = n
+	sh.Data = uintptr(unsafe.Pointer(csa))
+
+	sa2 := make([]int, len(sa))
+
+	for i,v := range sa {
+		sa2[i] = int(v)
+	}
+
+	return sa2
+}
+
+func saDivSufSort(t []byte) []int {
+	//from https://github.com/EvolBioInf/esa/
+	var sa []int
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&t))
+	ct := (*C.sauchar_t)(unsafe.Pointer(header.Data))
+	n := len(t)
+	csa := (*C.saidx64_t)(C.malloc(C.size_t(n * C.sizeof_saidx64_t)))
+	cn := C.saidx64_t(n)
+	err := int(C.divsufsort64(ct, csa, cn))
+	if err != 0 {
+		log.Fatalf("divsufsort failed with code %d\n", err)
+	}
+	header = (*reflect.SliceHeader)((unsafe.Pointer(&sa)))
+	header.Cap = n
+	header.Len = n
+	header.Data = uintptr(unsafe.Pointer(csa))
+	return sa
 }
