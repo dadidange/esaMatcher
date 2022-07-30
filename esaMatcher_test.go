@@ -3,7 +3,6 @@ package esaMatcher
 import (
 	"bufio"
 	"math/rand"
-	// "fmt"
 	"os"
 	"testing"
 )
@@ -14,6 +13,7 @@ var ecoSeq []byte
 var ranseq50MBP []byte
 var ranseq5MBP []byte
 var result []int
+var esaRes Esa
 
 func TestMain(m *testing.M) {
 	// call flag.Parse() here if TestMain uses flags
@@ -23,33 +23,9 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// func TestDebug(t *testing.T){
-// 	s1 := []byte("ACTTGACAA")//ranseq
-// 	s2 := []byte("ACAAACATAT")//OhleBusch Book
-// 	s3 := []byte("AAGTAAGG")
-	
-// 	s := [][]byte{s1,s2,s3}
-	 
-// 	var e Esa
-
-// 	for _,seq := range s {
-// 		e = NewEsa(seq, "SaSais")
-// 		fmt.Printf("\nESA for %s\n", seq)
-// 		e.Print(0)
-// 	}
-// }
-
-// func TestDebug2(t *testing.T){
-// 	s1 := []byte("ACTTGACAA")//ranseq
-	
-	 
-// 	s := Sa(s1, "SaSais")
-// 	fmt.Println(s)
-
-// 	s = Sa(s1, "SaDivSufSort")
-// 	fmt.Println(s)
-// }
-
+//-----------------------------
+//Benchmarks
+//-----------------------------
 
 func BenchmarkLibSais5MBP(b *testing.B){
 	s := Sa(ranseq5MBP, "SaSais")
@@ -67,7 +43,6 @@ func BenchmarkLibSais50MBP(b *testing.B){
 	result=s
 }
 
-
 func BenchmarkLibDivSufSort50MBP(b *testing.B){
 	s := Sa(ranseq50MBP, "SaDivSufSort")
 	result=s
@@ -78,10 +53,19 @@ func BenchmarkSaisEco(b *testing.B){
 	result=s
 }
 
-
 func BenchmarkLibDivSufSortEco(b *testing.B){
 	s := Sa(ecoSeq, "SaDivSufSort")
 	result=s
+}
+
+func BenchmarkEsaSaisEco(b *testing.B) {
+	e := NewEsa(ecoSeq, "SaSais")
+	esaRes = e
+}
+
+func BenchmarkEsaDivSufSortEco(b *testing.B) {
+	e := NewEsa(ecoSeq, "SaDivSufSort")
+	esaRes = e
 }
 
 //helpers
@@ -97,6 +81,7 @@ func ranseq(len int, nuc string) []byte{
 	return seq
 }
 
+//read fasta file from input string
 func readFile(path string) []byte{
 	fileHandle, _ := os.Open(path)
 	defer fileHandle.Close()
