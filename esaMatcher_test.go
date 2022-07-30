@@ -28,44 +28,51 @@ func TestMain(m *testing.M) {
 //-----------------------------
 
 func BenchmarkLibSais5MBP(b *testing.B){
-	s := Sa(ranseq5MBP, "SaSais")
-	result=s
+	for n:=0; n<b.N; n++{
+		Sa(ranseq5MBP, "SaSais")
+	}
 }
 
-
 func BenchmarkLibDivSufSort5MBP(b *testing.B){
-	s := Sa(ranseq5MBP, "SaDivSufSort")
-	result=s
+	for n:=0; n<b.N; n++{
+		Sa(ranseq5MBP, "SaDivSufSort")
+	}
 }
 
 func BenchmarkLibSais50MBP(b *testing.B){
-	s := Sa(ranseq50MBP, "SaSais")
-	result=s
+	for n:=0; n<b.N; n++{
+		Sa(ranseq50MBP, "SaSais")
+	}
 }
 
 func BenchmarkLibDivSufSort50MBP(b *testing.B){
-	s := Sa(ranseq50MBP, "SaDivSufSort")
-	result=s
+	for n:=0; n<b.N; n++{
+		Sa(ranseq50MBP, "SaDivSufSort")
+	}
 }
 
 func BenchmarkSaisEco(b *testing.B){
-	s := Sa(ecoSeq, "SaSais")
-	result=s
+	for n:=0; n<b.N; n++{
+		Sa(ecoSeq, "SaSais")
+	}
 }
 
 func BenchmarkLibDivSufSortEco(b *testing.B){
-	s := Sa(ecoSeq, "SaDivSufSort")
-	result=s
+	for n:=0; n<b.N; n++{
+		Sa(ecoSeq, "SaDivSufSort")
+	}
 }
 
 func BenchmarkEsaSaisEco(b *testing.B) {
-	e := NewEsa(ecoSeq, "SaSais")
-	esaRes = e
+	for n:=0; n<b.N; n++{
+		NewEsa(ecoSeq, "SaSais")
+	}
 }
 
 func BenchmarkEsaDivSufSortEco(b *testing.B) {
-	e := NewEsa(ecoSeq, "SaDivSufSort")
-	esaRes = e
+	for n:=0; n<b.N; n++{
+		NewEsa(ecoSeq, "SaDivSufSort")
+	}
 }
 
 //helpers
