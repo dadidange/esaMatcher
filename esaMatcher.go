@@ -29,6 +29,7 @@ func (e *Esa) Cld() []int       { return e.cld }
 func (e *Esa) Sequence() []byte { return e.s }
 func (e *Esa) StrandSize() int  { return e.strandSize }
 
+//make new ESA that includes the reverse complement
 func NewEsa(s []byte, saLib string) Esa {
 	strandSize := len(s)
 	s = append(s, '$')
@@ -42,6 +43,15 @@ func NewEsa(s []byte, saLib string) Esa {
 	cld := Cld(lcp)
 
 	return Esa{s, sa, lcp, cld, strandSize}
+}
+
+//make new ESA that includes the reverse complement
+func NewRevEsa(s []byte, saLib string) Esa {
+	l := len(s)
+	s = append(s, append([]byte{'#'}, RevComp(s)...)...)
+	esa := NewEsa(s, saLib)
+	esa.strandSize = l
+	return esa
 }
 
 func (e *Esa) Print(numSeq int) {
@@ -153,6 +163,31 @@ func Cld(lcp []int) []int {
 		push(k)
 	}
 	return cld
+}
+
+func RevComp(s []byte) []byte{
+	n := len(s)
+
+	f := []byte("ACGTN")
+	r := []byte("TGCAN")
+
+	rev := make([]byte, len(s))
+	var dic [256]byte
+	for i := range dic {
+		dic[i] = byte(i)
+	}
+	for i, v := range f {
+		dic[v] = r[i]
+	}
+	for i, v := range rev {
+		rev[i] = dic[v]
+	}
+
+		//Reverse
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		rev[i], rev[j] = dic[s[j]], dic[s[i]]
+	}	
+	return rev
 }
 
 func saSais(t[]byte) []int{
