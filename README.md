@@ -8,7 +8,7 @@ The matching algorithms are adapted from [Ohlebusch (2013)](https://www.uni-ulm.
 To run this library both, *libdivsufsort* and *libsais* should be installed.  
 
 ## Benchmarks
-Since both, *libsivsufsort* and **libsais* are optimized for certain hardware please benchmark for better results. 
+Since both, *libsivsufsort* and *libsais* are optimized for certain hardware please benchmark for better results. 
 
 To benchmark run
 ```
