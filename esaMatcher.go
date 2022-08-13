@@ -15,6 +15,11 @@ import (
 	"unsafe"
 )
 
+const (
+	// Default SA Construction Method
+	defaultSa = "SaSais"
+)
+
 type Esa struct {
 	s          []byte
 	sa         []int
@@ -86,7 +91,10 @@ func (e *Esa) Print(numSeq int) {
 	}
 }
 
-func Sa(t[]byte, method string) []int{
+func Sa(t []byte, method string) []int {
+	if method == ""{
+		method = defaultSa
+	}
 	var sa []int
 	if method == "SaDivSufSort" {
 		sa = saDivSufSort(t)
@@ -165,7 +173,7 @@ func Cld(lcp []int) []int {
 	return cld
 }
 
-func RevComp(s []byte) []byte{
+func RevComp(s []byte) []byte {
 	n := len(s)
 
 	f := []byte("ACGTN")
@@ -183,22 +191,22 @@ func RevComp(s []byte) []byte{
 		rev[i] = dic[v]
 	}
 
-		//Reverse
+	//Reverse
 	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
 		rev[i], rev[j] = dic[s[j]], dic[s[i]]
-	}	
+	}
 	return rev
 }
 
-func saSais(t[]byte) []int{
+func saSais(t []byte) []int {
 	// var sa []int
 	n := len(t)
 	sh := (*reflect.SliceHeader)(unsafe.Pointer(&t))
-	ct := (*C.uint8_t) (unsafe.Pointer(sh.Data))
-	csa := (*C.int32_t)(C.malloc(C.size_t(n*C.sizeof_int32_t)))
+	ct := (*C.uint8_t)(unsafe.Pointer(sh.Data))
+	csa := (*C.int32_t)(C.malloc(C.size_t(n * C.sizeof_int32_t)))
 	cn := C.int32_t(n)
 	cz := C.int32_t(0)
-	czp := (*C.int32_t) (nil)
+	czp := (*C.int32_t)(nil)
 	err := int(C.libsais(ct, csa, cn, cz, czp))
 	if err != 0 {
 		log.Fatalf("divsufsort failed with code %d\n", err)
@@ -213,7 +221,7 @@ func saSais(t[]byte) []int{
 
 	sa2 := make([]int, len(sa))
 
-	for i,v := range sa {
+	for i, v := range sa {
 		sa2[i] = int(v)
 	}
 
@@ -238,3 +246,107 @@ func saDivSufSort(t []byte) []int {
 	header.Data = uintptr(unsafe.Pointer(csa))
 	return sa
 }
+
+type EsaInterval struct {
+	start int
+	end   int
+	mid   int
+	l     int
+}
+
+func (i *EsaInterval)Start() int{return i.start}
+func (i *EsaInterval)End() int{return i.end}
+func (i *EsaInterval)Mid() int{return i.mid}
+func (i *EsaInterval)L() int{return i.l}
+
+func NewEsaInterval(start, end int, e Esa) EsaInterval {
+	//Check for empty, invalid or singleton interval
+	if start >= end {
+		//singleton
+		if start >= 0 {
+			return EsaInterval{start, end, start, e.lcp[end]}
+		} else {
+			//empty or invalid
+			return EmptyEsaInterval()
+		}
+	}
+
+	m := e.cld[end] //CLD.L(m+1) = cld(m)
+	for m <= start {
+		m = e.cld[m]
+	}
+
+	return EsaInterval{start, end, m, e.lcp[m]}
+}
+
+func EmptyEsaInterval() EsaInterval {
+	return EsaInterval{-1, -1, -1, -1}
+}
+
+
+func (e *Esa)GetInterval(i EsaInterval, c byte) (EsaInterval){
+	// Check Singleton Interval
+	if i.start == i.end{
+	  if(e.s[e.sa[i.start]] == c){
+		return i
+	  } else {
+		//Return empty interval
+		return EmptyEsaInterval()
+	  }
+	}
+	lower := i.start
+	upper := i.mid
+	l := i.l
+	for e.lcp[upper] == l {
+	  if (e.s[e.sa[lower]+l] == c){
+		//match found
+		return NewEsaInterval(lower, upper-1, *e)
+	  }
+	  //increment interval boundaries
+	  lower = upper
+	  //check for singleton
+	  if (lower == i.end){
+		break
+	  }
+	  upper = e.cld[upper] //CLD.R(m) = cld(m)
+	}
+	if (e.s[e.sa[lower] + l] == c){
+	  return NewEsaInterval(lower, i.end, *e)
+	} else {
+	  return EmptyEsaInterval()
+	}
+  }
+  
+  
+  func (e *Esa)GetMatch(query []byte) EsaInterval{
+	in := NewEsaInterval(0, len(e.s)-1, *e)
+	cld := EmptyEsaInterval()
+	k := 0
+	m := len(query)
+	for k < m{
+	  cld = e.GetInterval(in, query[k])
+	  if (cld.start == -1 && cld.end == -1){
+		if (k == 0){
+		  return cld
+		}
+		in.l = k
+		return in
+	  }
+  
+	  k++ //the k-th character was matched in
+	  in = cld
+	  l := in.l
+	  if(in.start == in.end || l > m){
+		l = m
+	  }
+  
+	  for saIdx:=e.sa[in.start]; k < l; k++ {
+		if(e.s[saIdx+k] != query[k]){
+		  in.l = k
+		  return in
+		}
+	  }
+	}
+	in.l = m
+	return in
+  }
