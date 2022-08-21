@@ -4,6 +4,7 @@ import "sort"
 
 
 type saSorter struct{
+	sa []int
 	idx []int
 	str []byte
 }
@@ -13,31 +14,35 @@ func (m saSorter) Len() int{
 }
 
 func (m saSorter) Less(i,j int) bool{
-	return less(i,j, m.str)
+	return less(m.sa[i], m.sa[j], m.str)
 }
 
 func less(i,j int, str[]byte) bool{
-	if str[i] != str[j]{
+	if i == len(str) || j == len(str) {
+		return i == len(str)
+	} else if str[i] != str[j]{
 		return str[i] < str[j]
-	} else {
-		return less(i+1, j+1, str)
+	} else { 
+		return less(i+1, j+1, str) 
 	}
-
 }
 
 func (m saSorter) Swap(i,j int){
-	m.idx[i], m.idx[j] = m.idx[j], m.idx[i]
+	m.sa[i], m.sa[j] = m.sa[j], m.sa[i]
 }
 
 func saNaive(t []byte) []int {
 	n := len(t)
-	indeces := make([]int, n + 1)
-	t = append(t, '$')
+	// if t[n-1] != '$'{
+	// 	n += 1
+	// 	t =append(t, '$')
+	// } 
+	indeces := make([]int, n)
 
 	for idx := range t{
 		indeces[idx] = idx
 	}
-	sa := saSorter{indeces, t}
+	sa := saSorter{indeces, indeces, t}
 	
 	sort.Sort(sa)
 	return sa.idx
