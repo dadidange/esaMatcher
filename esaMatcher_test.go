@@ -238,6 +238,12 @@ func Benchmark_Sa_LibDivSufSort_5MBP(b *testing.B){
 	}
 }
 
+func Benchmark_Sa_Naive_5MBP(b *testing.B){
+	for n:=0; n<b.N; n++{
+		Sa(ranseq5MBP, "SaNaive")
+	}
+}
+
 func Benchmark_Sa_GoSa_5MP(b *testing.B) {
 	for n:=0; n<b.N; n++{
 	goSa(ranseq5MBP)

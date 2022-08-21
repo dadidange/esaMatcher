@@ -100,6 +100,8 @@ func Sa(t []byte, method string) []int {
 		sa = saDivSufSort(t)
 	} else if method == "SaSais" {
 		sa = saSais(t)
+	}  else if method == "SaNaive" {
+		sa = saNaive(t)
 	} else {
 		s := "Current options are:\n\t-SaDivSufSort\n\t-SaSais"
 		log.Fatalf("library saLib = %s not defined to compute SA\n%s\n", method, s)
