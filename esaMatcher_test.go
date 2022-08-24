@@ -14,11 +14,13 @@ var path = "testSeqs/AE005174.fa"
 var ecoSeq []byte
 var ranseq50MBP []byte
 var ranseq5MBP []byte
+var aseq5MBP []byte
 
 func TestMain(m *testing.M) {
 	// call flag.Parse() here if TestMain uses flags
 	ranseq50MBP = ranseq(50000000, "ACGT")
 	ranseq5MBP = ranseq(5000000, "ACGT")
+	aseq5MBP = ranseq(5000000, "T")
 	ecoSeq = readFile(path)
 	os.Exit(m.Run())
 }
@@ -34,7 +36,6 @@ func TestMain(m *testing.M) {
 // 	e.Print(0)
 // 	e = NewEsa(x, "SaSais")
 // 	e.Print(0)
-
 // }
 
 func TestSasComp(t *testing.T) {
@@ -64,7 +65,7 @@ func TestSasComp(t *testing.T) {
 			if saSais[i] != saDiv[i] ||
 				saNaive[i] != saSais[i] {
 				t.Errorf("Idx Mismatch for Suffix Arrays at %d: %d vs. %d vs. %d", i, saSais[i], saDiv[i], saNaive[i])
-
+				return
 			}
 		}
 
@@ -287,6 +288,30 @@ func Benchmark_Sa_GoSa_5MBP(b *testing.B) {
 	}
 }
 
+func Benchmark_Sa_LibSais_T_5MBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(aseq5MBP, "SaSais")
+	}
+}
+
+func Benchmark_Sa_LibDivSufSort_T_5MBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(aseq5MBP, "SaDivSufSort")
+	}
+}
+
+func Benchmark_Sa_Naive_T_5MBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(aseq5MBP, "SaNaive")
+	}
+}
+
+func Benchmark_Sa_GoSa_T_5MBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		goSa(aseq5MBP)
+	}
+}
+
 func Benchmark_Sa_LibSais_50MBP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		Sa(ranseq50MBP, "SaSais")
@@ -347,18 +372,22 @@ func Benchmark_Esa_LibDivSufSort_Eco(b *testing.B) {
 	}
 }
 
-//helpers
+//-----------------------------
+// Helper Functions
+//-----------------------------
 
 //generate sequence with length len and the given alphabet nuc
-func ranseq(len int, nuc string) []byte {
-	seq := make([]byte, len)
-	for i := 0; i < len; i++ {
-		rd := rand.Int() % 4
+func ranseq(seqLen int, nuc string) []byte {
+	n := len(nuc)
+	seq := make([]byte, seqLen)
+	for i := 0; i < seqLen; i++ {
+		rd := rand.Int() % n
 		//  nuc at random position
 		seq[i] = nuc[rd]
 	}
 	return seq
 }
+
 
 //read fasta file from input string
 func readFile(path string) []byte {
@@ -378,9 +407,6 @@ func readFile(path string) []byte {
 	return seq
 }
 
-//-----------------------------
-// Helper Functions
-//-----------------------------
 
 func min(a, b int) int {
 	if a < b {
