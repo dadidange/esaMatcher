@@ -14,17 +14,17 @@ func (m saSorter) Len() int{
 }
 
 func (m saSorter) Less(i,j int) bool{
-	return less(m.sa[i], m.sa[j],m.size, m.str)
-}
-
-func less(i,j,n int, str[]byte) bool{
-	if i == n || j == n {
-		return i == n
-	} else if str[i] != str[j]{
-		return str[i] < str[j]
-	} else { 
-		return less(i+1, j+1, n, str) 
+	// return less(m.sa[i], m.sa[j],m.size, m.str)
+	istr := m.str[m.sa[i]:]
+	jstr := m.str[m.sa[j]:]
+	for n := 0; n < len(istr) && n < len(jstr); n++ {
+		if istr[n] == jstr[n]{
+			continue
+		} else {
+			return istr[n] < jstr[n]			
+		}
 	}
+	return len(istr) < len(jstr)
 }
 
 func (m saSorter) Swap(i,j int){
