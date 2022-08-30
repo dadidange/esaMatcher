@@ -1,0 +1,24 @@
+goos: linux
+goarch: amd64
+pkg: github.com/dadidange/esaMatcher
+cpu: Intel(R) Xeon(R) W-2245 CPU @ 3.90GHz
+Benchmark_Sa_LibSais_50KBP-16          	      10	   1473906 ns/op	  401408 B/op	       1 allocs/op
+Benchmark_Sa_LibDivSufSort_50KBP-16    	      10	   5776635 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Sa_GoSa_50KBP-16             	      10	   5604703 ns/op	  204880 B/op	       2 allocs/op
+Benchmark_Sa_Naive_50KBP-16            	      10	  17368972 ns/op	  401472 B/op	       2 allocs/op
+Benchmark_Sa_LibSais_5MBP-16           	      10	 211524342 ns/op	40001546 B/op	       1 allocs/op
+Benchmark_Sa_LibDivSufSort_5MBP-16     	      10	 298241599 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Sa_GoSa_5MBP-16              	      10	 292054359 ns/op	20004953 B/op	       2 allocs/op
+Benchmark_Sa_Naive_5MBP-16             	      10	2012983448 ns/op	40001600 B/op	       2 allocs/op
+Benchmark_Sa_LibSais_50MBP-16          	      10	2097915858 ns/op	400007179 B/op	       1 allocs/op
+Benchmark_Sa_LibDivSufSort_50MBP-16    	      10	3779828675 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Sa_GoSa_50MBP-16             	      10	4299595457 ns/op	200007980 B/op	       2 allocs/op
+Benchmark_Sa_Naive_50MBP-16            	      10	31204961952 ns/op	400007232 B/op	       2 allocs/op
+Benchmark_Sa_LibSais_Eco-16            	      10	 240143838 ns/op	44228608 B/op	       1 allocs/op
+Benchmark_Sa_LibDivSufSort_Eco-16      	      10	 318073996 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Sa_GoSa_Eco-16               	      10	 379810756 ns/op	22118480 B/op	       2 allocs/op
+Benchmark_Sa_Naive_Eco-16              	      10	2873848399 ns/op	44228672 B/op	       2 allocs/op
+Benchmark_Esa_LibSais_Eco-16           	      10	 568504875 ns/op	232330515 B/op	      21 allocs/op
+Benchmark_Esa_LibDivSufSort_Eco-16     	      10	 721471572 ns/op	188101928 B/op	      20 allocs/op
+PASS
+ok  	github.com/dadidange/esaMatcher	548.877s

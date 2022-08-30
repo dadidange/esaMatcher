@@ -12,6 +12,7 @@ import (
 
 var path = "testSeqs/AE005174.fa"
 var ecoSeq []byte
+var ranseq50KBP []byte
 var ranseq50MBP []byte
 var ranseq5MBP []byte
 var aseq5MBP []byte
@@ -20,7 +21,8 @@ func TestMain(m *testing.M) {
 	// call flag.Parse() here if TestMain uses flags
 	ranseq50MBP = ranseq(50000000, "ACGT")
 	ranseq5MBP = ranseq(5000000, "ACGT")
-	aseq5MBP = ranseq(5000000, "T")
+	ranseq50KBP = ranseq(50000, "ACGT")
+	aseq5MBP = ranseq(5000, "T")
 	ecoSeq = readFile(path)
 	os.Exit(m.Run())
 }
@@ -28,7 +30,6 @@ func TestMain(m *testing.M) {
 //-----------------------------
 // Functionality Tests
 //-----------------------------
-
 
 // func TestDummy(t *testing.T) {
 // 	x := []byte("ACAAACATAT")
@@ -47,12 +48,12 @@ func TestSasComp(t *testing.T) {
 			"GGACTCCATGTGTTAAGTCACCGACTGCGTGCCACCTGCGTCTTCGAAACGG"),
 		ecoSeq,
 	}
-	
+
 	for _, seq := range seqs {
 		saSais := Sa(seq, "SaSais")
 		saDiv := Sa(seq, "SaDivSufSort")
 		saNaive := Sa(seq, "SaNaive")
-		saGo := goSa(seq)		
+		saGo := goSa(seq)
 
 		if len(saSais) != len(saDiv) ||
 			len(saNaive) != len(saGo) ||
@@ -264,6 +265,30 @@ func TestGetMatch(t *testing.T) {
 //Benchmarks
 //-----------------------------
 
+func Benchmark_Sa_LibSais_50KBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(ranseq50KBP, "SaSais")
+	}
+}
+
+func Benchmark_Sa_LibDivSufSort_50KBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(ranseq50KBP, "SaDivSufSort")
+	}
+}
+
+func Benchmark_Sa_GoSa_50KBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		goSa(ranseq50KBP)
+	}
+}
+
+func Benchmark_Sa_Naive_50KBP(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(ranseq50KBP, "SaNaive")
+	}
+}
+
 func Benchmark_Sa_LibSais_5MBP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		Sa(ranseq5MBP, "SaSais")
@@ -276,41 +301,41 @@ func Benchmark_Sa_LibDivSufSort_5MBP(b *testing.B) {
 	}
 }
 
-func Benchmark_Sa_Naive_5MBP(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Sa(ranseq5MBP, "SaNaive")
-	}
-}
-
 func Benchmark_Sa_GoSa_5MBP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		goSa(ranseq5MBP)
 	}
 }
 
-func Benchmark_Sa_LibSais_T_5MBP(b *testing.B) {
+func Benchmark_Sa_Naive_5MBP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Sa(aseq5MBP, "SaSais")
+		Sa(ranseq5MBP, "SaNaive")
 	}
 }
 
-func Benchmark_Sa_LibDivSufSort_T_5MBP(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Sa(aseq5MBP, "SaDivSufSort")
-	}
-}
+// func Benchmark_Sa_LibSais_T_5MBP(b *testing.B) {
+// 	for n := 0; n < b.N; n++ {
+// 		Sa(aseq5MBP, "SaSais")
+// 	}
+// }
 
-func Benchmark_Sa_Naive_T_5MBP(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Sa(aseq5MBP, "SaNaive")
-	}
-}
+// func Benchmark_Sa_LibDivSufSort_T_5MBP(b *testing.B) {
+// 	for n := 0; n < b.N; n++ {
+// 		Sa(aseq5MBP, "SaDivSufSort")
+// 	}
+// }
 
-func Benchmark_Sa_GoSa_T_5MBP(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		goSa(aseq5MBP)
-	}
-}
+// func Benchmark_Sa_Naive_T_5MBP(b *testing.B) {
+// 	for n := 0; n < b.N; n++ {
+// 		Sa(aseq5MBP, "SaNaive")
+// 	}
+// }
+
+// func Benchmark_Sa_GoSa_T_5MBP(b *testing.B) {
+// 	for n := 0; n < b.N; n++ {
+// 		goSa(aseq5MBP)
+// 	}
+// }
 
 func Benchmark_Sa_LibSais_50MBP(b *testing.B) {
 	for n := 0; n < b.N; n++ {
@@ -348,15 +373,15 @@ func Benchmark_Sa_LibDivSufSort_Eco(b *testing.B) {
 	}
 }
 
-func Benchmark_Sa_Naive_Eco(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		Sa(ecoSeq, "SaNaive")
-	}
-}
-
 func Benchmark_Sa_GoSa_Eco(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		goSa(ecoSeq)
+	}
+}
+
+func Benchmark_Sa_Naive_Eco(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Sa(ecoSeq, "SaNaive")
 	}
 }
 
@@ -388,7 +413,6 @@ func ranseq(seqLen int, nuc string) []byte {
 	return seq
 }
 
-
 //read fasta file from input string
 func readFile(path string) []byte {
 	fileHandle, _ := os.Open(path)
@@ -406,7 +430,6 @@ func readFile(path string) []byte {
 	}
 	return seq
 }
-
 
 func min(a, b int) int {
 	if a < b {
