@@ -21,6 +21,9 @@ const (
 	defaultSa = "SaSais"
 )
 
+// The Esa type holds relevant properties of the ESA. 
+// All properties are initialized when the Esa is constructed and  
+// can be acessed by calling their corresponding getters. 
 type Esa struct {
 	s          []byte
 	sa         []int
@@ -29,10 +32,16 @@ type Esa struct {
 	strandSize int
 }
 
+// Return the suffix array of Esa.
 func (e *Esa) Sa() []int        { return e.sa }
+// Return the longest common prefix array of Esa.
 func (e *Esa) Lcp() []int       { return e.lcp }
+// Return the child array of Esa.
 func (e *Esa) Cld() []int       { return e.cld }
+// Return the sequence for the Esa.
 func (e *Esa) Sequence() []byte { return e.s }
+// Return the single strand size hold by the esa. 
+// Equals len(Sequence) if the ESA was initialized w/o the reverse complement.
 func (e *Esa) StrandSize() int  { return e.strandSize }
 
 //initialize new ESA of text t without the reverse complement
@@ -60,6 +69,7 @@ func NewRevEsa(s []byte, saLib string) Esa {
 	return esa
 }
 
+// Print the ESA to stdout. 
 func (e *Esa) Print(numSeq int) {
 	sa := e.Sa()
 	lcp := e.Lcp()
@@ -92,6 +102,8 @@ func (e *Esa) Print(numSeq int) {
 	}
 }
 
+// Calculate the suffix array for a text t using the given method. 
+// Options are empyt ("") for default, SaDivSufSort, SaSais and SaNaive. 
 func Sa(t []byte, method string) []int {
 	if method == ""{
 		method = defaultSa
@@ -196,7 +208,8 @@ func Cld(lcp []int) []int {
 
 // RevComp returns the reverse complement of a given DNA string. 
 //
-// The DNA nucleotide characters ACGT will be translated to their counterparts TGCA. 
+// The DNA nucleotide characters 'A','C','G' and 'T' will be translated to their counterparts 'T','G','C' and 'A'. 
+// Any other character will be converted to a 'N'.
 func RevComp(seq []byte) []byte {
 	n := len(seq)
 	revSeq := make([]byte, n)
@@ -254,7 +267,29 @@ func RevCompObs(s []byte) []byte {
 	return rev
 }
 
+// Wrapper for the C-Library LibDivSufSort, adopded from https://github.com/EvolBioInf/esa/. 
+// This function takes a text t and returns its suffix array SA. 
+func saDivSufSort(t []byte) []int {
+	//from https://github.com/EvolBioInf/esa/
+	var sa []int
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&t))
+	ct := (*C.sauchar_t)(unsafe.Pointer(header.Data))
+	n := len(t)
+	csa := (*C.saidx64_t)(C.malloc(C.size_t(n * C.sizeof_saidx64_t)))
+	cn := C.saidx64_t(n)
+	err := int(C.divsufsort64(ct, csa, cn))
+	if err != 0 {
+		log.Fatalf("divsufsort failed with code %d\n", err)
+	}
+	header = (*reflect.SliceHeader)((unsafe.Pointer(&sa)))
+	header.Cap = n
+	header.Len = n
+	header.Data = uintptr(unsafe.Pointer(csa))
+	return sa
+}
 
+// Wrapper for the C-Library Libsais.  
+// This function takes a text t and returns its suffix array SA. 
 func saSais(t []byte) []int {
 	// var sa []int
 	n := len(t)
@@ -285,24 +320,6 @@ func saSais(t []byte) []int {
 	return sa2
 }
 
-func saDivSufSort(t []byte) []int {
-	//from https://github.com/EvolBioInf/esa/
-	var sa []int
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&t))
-	ct := (*C.sauchar_t)(unsafe.Pointer(header.Data))
-	n := len(t)
-	csa := (*C.saidx64_t)(C.malloc(C.size_t(n * C.sizeof_saidx64_t)))
-	cn := C.saidx64_t(n)
-	err := int(C.divsufsort64(ct, csa, cn))
-	if err != 0 {
-		log.Fatalf("divsufsort failed with code %d\n", err)
-	}
-	header = (*reflect.SliceHeader)((unsafe.Pointer(&sa)))
-	header.Cap = n
-	header.Len = n
-	header.Data = uintptr(unsafe.Pointer(csa))
-	return sa
-}
 
 // The type EsaInterval represents an interval inside our ESA. 
 //
@@ -318,11 +335,34 @@ type EsaInterval struct {
 	l     int
 }
 
+// Starting index of the interval in the ESA. 
 func (i *EsaInterval)Start() int{return i.start}
+// Ending index of the interval in the ESA. 
 func (i *EsaInterval)End() int{return i.end}
+// middle index which is the end of its first child.
 func (i *EsaInterval)Mid() int{return i.mid}
+// length of the lcp at mid or match length
 func (i *EsaInterval)L() int{return i.l}
 
+// Initialise new EsaInterval using the starting and ending indeces and the esa on which the interval lies. 
+//
+// Concept
+//
+// For most cases we can find the values for l and mid with the help of the child array.
+// Let’s take a look again at the left pointer CLD.L. CLD.L points to the first local minimum
+// of its “left” (above) interval. If an interval i ends at position j, CLD[J+1].L points to the
+// end of the first child interval of i normally. We only have to be careful for singletons
+// and the last child interval. If the given interval {i,j} is the last child interval of some
+// parent interval, CLD.L[j+1] might point to an minimum that starts before i since it
+// always points to the first minimum of the interval {h,j} that ends there with h < i ≤ j.
+// For those two intervals that end at j, CLD[j+1].L points to the minimum of the larger
+// interval, that is {h,j}. Hence we can not take this pointer to find the minimum of {i,j}
+// In this case we can make use of CLD[h].R that points to the next minimum of {h,j}.
+// Since {i,j} must be a child of {h,j} we can follow the right pointers until we will 
+// eventually arrive at the start index of {i,j}.
+//
+// Both, the left and the right pointer are stored in a single list 
+// with CLD[i].L = CLD[i-1] and CLD[i].R = CLD[i] to save space.
 func NewEsaInterval(start, end int, e Esa) EsaInterval {
 	//Check for empty, invalid or singleton interval
 	if start >= end {
@@ -339,14 +379,25 @@ func NewEsaInterval(start, end int, e Esa) EsaInterval {
 	for m <= start {
 		m = e.cld[m]
 	}
-
 	return EsaInterval{start, end, m, e.lcp[m]}
 }
 
+// Returns a new, empty inerval.
 func EmptyEsaInterval() EsaInterval {
 	return EsaInterval{-1, -1, -1, -1}
 }
 
+// Given an interval i on the ESA and a character c GetInterval returns the subinterval
+// of i that starts with c.
+//
+// Implementation
+//
+// GetInterval starts by looking for singletons, i.e. intervals that only contain one element.
+// If i is not a singleton interval we want to loop through the subintervals one level below
+// the given interval, the child intervals. We initialize our interval by setting the
+// upper and lower bounds. The first child interval starts where i starts and ends mid, the
+// first local minimum.
+// We loop through the child intervals and check if any interval starts with c. 
 func (e *Esa)GetInterval(i EsaInterval, c byte) (EsaInterval){
 	// Check Singleton Interval
 	if i.start == i.end{
@@ -380,6 +431,13 @@ func (e *Esa)GetInterval(i EsaInterval, c byte) (EsaInterval){
 	}
 }
    
+// GetMatch returns the longest prefix of the query that matches the ESA, 
+// that is any suffix of the reference. 
+//
+// Implementation
+//
+// GetMatch calls GetInterval once per character at most. For every character in the
+// query we can call GetInterval with the child interval returned by the previous character.
 func (e *Esa)GetMatch(query []byte) EsaInterval{
 	in := NewEsaInterval(0, len(e.s)-1, *e)
 	cld := EmptyEsaInterval()
@@ -387,26 +445,28 @@ func (e *Esa)GetMatch(query []byte) EsaInterval{
 	m := len(query)
 	for k < m{
 		cld = e.GetInterval(in, query[k])
+		//check if empty interval was returned -> no match this round
 		if (cld.start == -1 && cld.end == -1){
-		if (k == 0){
-			return cld
-		}
-		in.l = k
-		return in
-		}
-
-		k++ //the k-th character was matched in
-		in = cld
-		l := in.l
-		if(in.start == in.end || l > m){
-		l = m
-		}
-
-		for saIdx:=e.sa[in.start]; k < l; k++ {
-		if(e.s[saIdx+k] != query[k]){
+			// if k > 0, there where matches in previous rounds
+			if (k == 0){
+				return cld
+			}
 			in.l = k
 			return in
 		}
+
+		k++
+		//extend the match and skip common prefixes
+		in = cld
+		l := in.l
+		if(in.start == in.end || l > m){
+			l = m
+		}		
+		for saIdx:=e.sa[in.start]; k < l; k++ {
+			if(e.s[saIdx+k] != query[k]){
+				in.l = k
+				return in
+			}
 		}
 	}
 	in.l = m
