@@ -13,6 +13,7 @@ import (
 	"log"
 	"reflect"
 	"unsafe"
+	"bytes"
 )
 
 const (
@@ -34,7 +35,7 @@ func (e *Esa) Cld() []int       { return e.cld }
 func (e *Esa) Sequence() []byte { return e.s }
 func (e *Esa) StrandSize() int  { return e.strandSize }
 
-//make new ESA that includes the reverse complement
+//initialize new ESA of text t without the reverse complement
 func NewEsa(s []byte, saLib string) Esa {
 	strandSize := len(s)
 	s = append(s, '$')
@@ -50,7 +51,7 @@ func NewEsa(s []byte, saLib string) Esa {
 	return Esa{s, sa, lcp, cld, strandSize}
 }
 
-//make new ESA that includes the reverse complement
+//make new ESA that includes of text t the reverse complement
 func NewRevEsa(s []byte, saLib string) Esa {
 	l := len(s)
 	s = append(s, append([]byte{'#'}, RevComp(s)...)...)
@@ -109,6 +110,10 @@ func Sa(t []byte, method string) []int {
 	return sa
 }
 
+// Lcp returns the LCP-array of a given text t and the corresponding suffic array sa.
+//
+// The LCP-array contains the length of the common prefix of an element with its 
+// predecessor in the alphabetically sorted suffix array.
 func Lcp(t []byte, sa []int) []int {
 	//from https://github.com/EvolBioInf/esa/
 	n := len(t)
@@ -137,7 +142,21 @@ func Lcp(t []byte, sa []int) []int {
 	return lcp
 }
 
+// Cld returns the child array from a LCP array.
+//
+// Concept
+//
+// A decrease in the LCP-array indicates a local minimum, that is, a node in our tree. 
+// Therefore, a right child, left child or both are added at these positions.
+// Minima inside the lcp array indicate boundaries between lcp intervals and 
+// hence different paths through our suffix tree. 
+// We use these boundaries to navigate through the tree structure 
+// which can be described as “guided binary search” (Frith and Shrestha, 2018). 
+//
+// The left and right child pointers CLD.L and CLD.R , respectively,
+// can be merged together to reduce memory requirements.
 func Cld(lcp []int) []int {
+	// initialize stack
 	stack := []int{}
 	top := func() int {
 		return stack[len(stack)-1]
@@ -175,7 +194,42 @@ func Cld(lcp []int) []int {
 	return cld
 }
 
-func RevComp(s []byte) []byte {
+// RevComp returns the reverse complement of a given DNA string. 
+//
+// The DNA nucleotide characters ACGT will be translated to their counterparts TGCA. 
+func RevComp(seq []byte) []byte {
+	n := len(seq)
+	revSeq := make([]byte, n)
+
+	//Reverse
+	//for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+	//revSeq[i], revSeq[j] = seq[j], seq[i]
+	//}
+	//slower but more secure
+	for i:= 0; i<n; i++ {
+		revSeq[(n-i)-1] = seq[i]
+	}
+
+	//Complement
+	f := func (r rune) rune  {
+		switch{
+		case r == 'A':
+			return 'T'
+		case r == 'T':
+			return 'A'
+		case r == 'G':
+			return 'C'
+		case r == 'C':
+			return 'G'
+		default:
+			return 'N'
+		}
+	}
+	return  bytes.Map(f, revSeq)
+}
+
+// This function is obsolete and will be removed in later versions
+func RevCompObs(s []byte) []byte {
 	n := len(s)
 
 	f := []byte("ACGTN")
@@ -199,6 +253,7 @@ func RevComp(s []byte) []byte {
 	}
 	return rev
 }
+
 
 func saSais(t []byte) []int {
 	// var sa []int
@@ -249,6 +304,13 @@ func saDivSufSort(t []byte) []int {
 	return sa
 }
 
+// The type EsaInterval represents an interval inside our ESA. 
+//
+// It contains an index for its starting and ending position. 
+// Also, it has its middle mid which is the end of its first child
+// interval and the length l defined. 
+// The length l represents the length of the lcp at mid during GetInterval and GetMatch. 
+// When the actual match is returned we will write the length of the match to l.
 type EsaInterval struct {
 	start int
 	end   int
@@ -285,7 +347,6 @@ func EmptyEsaInterval() EsaInterval {
 	return EsaInterval{-1, -1, -1, -1}
 }
 
-
 func (e *Esa)GetInterval(i EsaInterval, c byte) (EsaInterval){
 	// Check Singleton Interval
 	if i.start == i.end{
@@ -317,38 +378,37 @@ func (e *Esa)GetInterval(i EsaInterval, c byte) (EsaInterval){
 	} else {
 	  return EmptyEsaInterval()
 	}
-  }
-  
-  
-  func (e *Esa)GetMatch(query []byte) EsaInterval{
+}
+   
+func (e *Esa)GetMatch(query []byte) EsaInterval{
 	in := NewEsaInterval(0, len(e.s)-1, *e)
 	cld := EmptyEsaInterval()
 	k := 0
 	m := len(query)
 	for k < m{
-	  cld = e.GetInterval(in, query[k])
-	  if (cld.start == -1 && cld.end == -1){
+		cld = e.GetInterval(in, query[k])
+		if (cld.start == -1 && cld.end == -1){
 		if (k == 0){
-		  return cld
+			return cld
 		}
 		in.l = k
 		return in
-	  }
-  
-	  k++ //the k-th character was matched in
-	  in = cld
-	  l := in.l
-	  if(in.start == in.end || l > m){
-		l = m
-	  }
-  
-	  for saIdx:=e.sa[in.start]; k < l; k++ {
-		if(e.s[saIdx+k] != query[k]){
-		  in.l = k
-		  return in
 		}
-	  }
+
+		k++ //the k-th character was matched in
+		in = cld
+		l := in.l
+		if(in.start == in.end || l > m){
+		l = m
+		}
+
+		for saIdx:=e.sa[in.start]; k < l; k++ {
+		if(e.s[saIdx+k] != query[k]){
+			in.l = k
+			return in
+		}
+		}
 	}
 	in.l = m
 	return in
-  }
+}
