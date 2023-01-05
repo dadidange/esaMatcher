@@ -44,7 +44,13 @@ func (e *Esa) Sequence() []byte { return e.s }
 // Equals len(Sequence) if the ESA was initialized w/o the reverse complement.
 func (e *Esa) StrandSize() int  { return e.strandSize }
 
-//initialize new ESA of text t without the reverse complement
+// Initialize new ESA with default values
+func NewBaseEsa(s []byte) Esa{
+	return NewEsa(s, defaultSa)
+}
+
+// Initialize new ESA of text t with given suffix array library.
+// Does not include the reverse complement.
 func NewEsa(s []byte, saLib string) Esa {
 	strandSize := len(s)
 	s = append(s, '$')
@@ -60,7 +66,7 @@ func NewEsa(s []byte, saLib string) Esa {
 	return Esa{s, sa, lcp, cld, strandSize}
 }
 
-//make new ESA that includes of text t the reverse complement
+//Initialize a new ESA of text t that also includes the reverse complement.
 func NewRevEsa(s []byte, saLib string) Esa {
 	l := len(s)
 	s = append(s, append([]byte{'#'}, RevComp(s)...)...)
@@ -80,7 +86,6 @@ func (e *Esa) Print(numSeq int) {
 	fmt.Print("CLD\t")
 	fmt.Print("S[SA[i]..]\n")
 	fmt.Print("-----------------------------------\n")
-
 	m := len(sa)
 	if numSeq == 0 || numSeq > len(lcp) {
 		numSeq = len(lcp)
@@ -320,7 +325,6 @@ func saSais(t []byte) []int {
 	return sa2
 }
 
-
 // The type EsaInterval represents an interval inside our ESA. 
 //
 // It contains an index for its starting and ending position. 
@@ -344,7 +348,7 @@ func (i *EsaInterval)Mid() int{return i.mid}
 // length of the lcp at mid or match length
 func (i *EsaInterval)L() int{return i.l}
 
-// Initialise new EsaInterval using the starting and ending indeces and the esa on which the interval lies. 
+// Initialise new EsaInterval using the starting and ending indices and the esa on which the interval lies. 
 //
 // Concept
 //
@@ -360,9 +364,6 @@ func (i *EsaInterval)L() int{return i.l}
 // In this case we can make use of CLD[h].R that points to the next minimum of {h,j}.
 // Since {i,j} must be a child of {h,j} we can follow the right pointers until we will 
 // eventually arrive at the start index of {i,j}.
-//
-// Both, the left and the right pointer are stored in a single list 
-// with CLD[i].L = CLD[i-1] and CLD[i].R = CLD[i] to save space.
 func NewEsaInterval(start, end int, e Esa) EsaInterval {
 	//Check for empty, invalid or singleton interval
 	if start >= end {
@@ -382,7 +383,7 @@ func NewEsaInterval(start, end int, e Esa) EsaInterval {
 	return EsaInterval{start, end, m, e.lcp[m]}
 }
 
-// Returns a new, empty inerval.
+// Returns a new, empty interval.
 func EmptyEsaInterval() EsaInterval {
 	return EsaInterval{-1, -1, -1, -1}
 }

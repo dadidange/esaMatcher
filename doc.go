@@ -20,9 +20,9 @@
 // 
 // this returned for me
 // 
-// goos: linux
-// goarch: amd64
-// pkg: github.com/dadidange/esaMatcher
+// 	goos: linux
+// 	goarch: amd64
+// 	pkg: github.com/dadidange/esaMatcher
 // 	cpu: AMD Ryzen 5 5600X 6-Core Processor             
 // 	Benchmark_Sa_LibSais_5MBP-12                 176         133370608 ns/op
 // 	Benchmark_Sa_LibDivSufSort_5MBP-12           100         202835960 ns/op

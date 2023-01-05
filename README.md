@@ -1,4 +1,5 @@
 
+
 # esaMatcher
 `import "github.com/dadidange/esaMatcher"`
 
@@ -26,11 +27,10 @@ To benchmark run
 
 this returned for me
 
-goos: linux
-goarch: amd64
-pkg: github.com/dadidange/esaMatcher
 
-
+	goos: linux
+	goarch: amd64
+	pkg: github.com/dadidange/esaMatcher
 	cpu: AMD Ryzen 5 5600X 6-Core Processor
 	Benchmark_Sa_LibSais_5MBP-12                 176         133370608 ns/op
 	Benchmark_Sa_LibDivSufSort_5MBP-12           100         202835960 ns/op
@@ -71,6 +71,7 @@ Most parts of the documentation are adopted from the documentation in par_lp.
 * [func RevCompObs(s []byte) []byte](#RevCompObs)
 * [func Sa(t []byte, method string) []int](#Sa)
 * [type Esa](#Esa)
+  * [func NewBaseEsa(s []byte) Esa](#NewBaseEsa)
   * [func NewEsa(s []byte, saLib string) Esa](#NewEsa)
   * [func NewRevEsa(s []byte, saLib string) Esa](#NewRevEsa)
   * [func (e *Esa) Cld() []int](#Esa.Cld)
@@ -97,7 +98,7 @@ Most parts of the documentation are adopted from the documentation in par_lp.
 
 
 
-## <a name="Cld">func</a> [Cld](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=4262:4287#L170)
+## <a name="Cld">func</a> [Cld](./esaMatcher.go?s=4427:4452#L175)
 ``` go
 func Cld(lcp []int) []int
 ```
@@ -116,7 +117,7 @@ can be merged together to reduce memory requirements.
 
 
 
-## <a name="Lcp">func</a> [Lcp](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=3205:3239#L129)
+## <a name="Lcp">func</a> [Lcp](./esaMatcher.go?s=3370:3404#L134)
 ``` go
 func Lcp(t []byte, sa []int) []int
 ```
@@ -127,7 +128,7 @@ predecessor in the alphabetically sorted suffix array.
 
 
 
-## <a name="RevComp">func</a> [RevComp](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=5176:5207#L213)
+## <a name="RevComp">func</a> [RevComp](./esaMatcher.go?s=5341:5372#L218)
 ``` go
 func RevComp(seq []byte) []byte
 ```
@@ -138,7 +139,7 @@ Any other character will be converted to a 'N'.
 
 
 
-## <a name="RevCompObs">func</a> [RevCompObs](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=5746:5778#L245)
+## <a name="RevCompObs">func</a> [RevCompObs](./esaMatcher.go?s=5911:5943#L250)
 ``` go
 func RevCompObs(s []byte) []byte
 ```
@@ -146,7 +147,7 @@ This function is obsolete and will be removed in later versions
 
 
 
-## <a name="Sa">func</a> [Sa](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=2561:2599#L107)
+## <a name="Sa">func</a> [Sa](./esaMatcher.go?s=2726:2764#L112)
 ``` go
 func Sa(t []byte, method string) []int
 ```
@@ -156,7 +157,7 @@ Options are empyt ("") for default, SaDivSufSort, SaSais and SaNaive.
 
 
 
-## <a name="Esa">type</a> [Esa](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=502:610#L27)
+## <a name="Esa">type</a> [Esa](./esaMatcher.go?s=502:610#L27)
 ``` go
 type Esa struct {
     // contains filtered or unexported fields
@@ -173,24 +174,32 @@ can be acessed by calling their corresponding getters.
 
 
 
-### <a name="NewEsa">func</a> [NewEsa](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=1209:1248#L48)
+### <a name="NewBaseEsa">func</a> [NewBaseEsa](./esaMatcher.go?s=1189:1218#L48)
+``` go
+func NewBaseEsa(s []byte) Esa
+```
+Initialize new ESA with default values
+
+
+### <a name="NewEsa">func</a> [NewEsa](./esaMatcher.go?s=1361:1400#L54)
 ``` go
 func NewEsa(s []byte, saLib string) Esa
 ```
-initialize new ESA of text t without the reverse complement
+Initialize new ESA of text t with given suffix array library.
+Does not include the reverse complement.
 
 
-### <a name="NewRevEsa">func</a> [NewRevEsa](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=1553:1595#L64)
+### <a name="NewRevEsa">func</a> [NewRevEsa](./esaMatcher.go?s=1719:1761#L70)
 ``` go
 func NewRevEsa(s []byte, saLib string) Esa
 ```
-make new ESA that includes of text t the reverse complement
+Initialize a new ESA of text t that also includes the reverse complement.
 
 
 
 
 
-### <a name="Esa.Cld">func</a> (\*Esa) [Cld](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=828:853#L40)
+### <a name="Esa.Cld">func</a> (\*Esa) [Cld](./esaMatcher.go?s=828:853#L40)
 ``` go
 func (e *Esa) Cld() []int
 ```
@@ -199,7 +208,7 @@ Return the child array of Esa.
 
 
 
-### <a name="Esa.GetInterval">func</a> (\*Esa) [GetInterval](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=10886:10947#L401)
+### <a name="Esa.GetInterval">func</a> (\*Esa) [GetInterval](./esaMatcher.go?s=10914:10975#L402)
 ``` go
 func (e *Esa) GetInterval(i EsaInterval, c byte) EsaInterval
 ```
@@ -217,7 +226,7 @@ We loop through the child intervals and check if any interval starts with c.
 
 
 
-### <a name="Esa.GetMatch">func</a> (\*Esa) [GetMatch](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=11887:11934#L441)
+### <a name="Esa.GetMatch">func</a> (\*Esa) [GetMatch](./esaMatcher.go?s=11915:11962#L442)
 ``` go
 func (e *Esa) GetMatch(query []byte) EsaInterval
 ```
@@ -231,7 +240,7 @@ query we can call GetInterval with the child interval returned by the previous c
 
 
 
-### <a name="Esa.Lcp">func</a> (\*Esa) [Lcp](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=745:770#L38)
+### <a name="Esa.Lcp">func</a> (\*Esa) [Lcp](./esaMatcher.go?s=745:770#L38)
 ``` go
 func (e *Esa) Lcp() []int
 ```
@@ -240,7 +249,7 @@ Return the longest common prefix array of Esa.
 
 
 
-### <a name="Esa.Print">func</a> (\*Esa) [Print](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=1754:1785#L73)
+### <a name="Esa.Print">func</a> (\*Esa) [Print](./esaMatcher.go?s=1920:1951#L79)
 ``` go
 func (e *Esa) Print(numSeq int)
 ```
@@ -249,7 +258,7 @@ Print the ESA to stdout.
 
 
 
-### <a name="Esa.Sa">func</a> (\*Esa) [Sa](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=647:671#L36)
+### <a name="Esa.Sa">func</a> (\*Esa) [Sa](./esaMatcher.go?s=647:671#L36)
 ``` go
 func (e *Esa) Sa() []int
 ```
@@ -258,7 +267,7 @@ Return the suffix array of Esa.
 
 
 
-### <a name="Esa.Sequence">func</a> (\*Esa) [Sequence](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=913:944#L42)
+### <a name="Esa.Sequence">func</a> (\*Esa) [Sequence](./esaMatcher.go?s=913:944#L42)
 ``` go
 func (e *Esa) Sequence() []byte
 ```
@@ -267,7 +276,7 @@ Return the sequence for the Esa.
 
 
 
-### <a name="Esa.StrandSize">func</a> (\*Esa) [StrandSize](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=1090:1120#L45)
+### <a name="Esa.StrandSize">func</a> (\*Esa) [StrandSize](./esaMatcher.go?s=1090:1120#L45)
 ``` go
 func (e *Esa) StrandSize() int
 ```
@@ -277,7 +286,7 @@ Equals len(Sequence) if the ESA was initialized w/o the reverse complement.
 
 
 
-## <a name="EsaInterval">type</a> [EsaInterval](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=7996:8067#L331)
+## <a name="EsaInterval">type</a> [EsaInterval](./esaMatcher.go?s=8160:8231#L335)
 ``` go
 type EsaInterval struct {
     // contains filtered or unexported fields
@@ -298,18 +307,18 @@ When the actual match is returned we will write the length of the match to l.
 
 
 
-### <a name="EmptyEsaInterval">func</a> [EmptyEsaInterval](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=10198:10233#L386)
+### <a name="EmptyEsaInterval">func</a> [EmptyEsaInterval](./esaMatcher.go?s=10226:10261#L387)
 ``` go
 func EmptyEsaInterval() EsaInterval
 ```
-Returns a new, empty inerval.
+Returns a new, empty interval.
 
 
-### <a name="NewEsaInterval">func</a> [NewEsaInterval](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=9761:9815#L366)
+### <a name="NewEsaInterval">func</a> [NewEsaInterval](./esaMatcher.go?s=9788:9842#L367)
 ``` go
 func NewEsaInterval(start, end int, e Esa) EsaInterval
 ```
-Initialise new EsaInterval using the starting and ending indeces and the esa on which the interval lies.
+Initialise new EsaInterval using the starting and ending indices and the esa on which the interval lies.
 
 ### Concept
 For most cases we can find the values for l and mid with the help of the child array.
@@ -325,14 +334,11 @@ In this case we can make use of CLD[h].R that points to the next minimum of {h,j
 Since {i,j} must be a child of {h,j} we can follow the right pointers until we will
 eventually arrive at the start index of {i,j}.
 
-Both, the left and the right pointer are stored in a single list
-with CLD[i].L = CLD[i-1] and CLD[i].R = CLD[i] to save space.
 
 
 
 
-
-### <a name="EsaInterval.End">func</a> (\*EsaInterval) [End](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=8210:8240#L341)
+### <a name="EsaInterval.End">func</a> (\*EsaInterval) [End](./esaMatcher.go?s=8374:8404#L345)
 ``` go
 func (i *EsaInterval) End() int
 ```
@@ -341,7 +347,7 @@ Ending index of the interval in the ESA.
 
 
 
-### <a name="EsaInterval.L">func</a> (\*EsaInterval) [L](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=8397:8425#L345)
+### <a name="EsaInterval.L">func</a> (\*EsaInterval) [L](./esaMatcher.go?s=8561:8589#L349)
 ``` go
 func (i *EsaInterval) L() int
 ```
@@ -350,7 +356,7 @@ length of the lcp at mid or match length
 
 
 
-### <a name="EsaInterval.Mid">func</a> (\*EsaInterval) [Mid](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=8308:8338#L343)
+### <a name="EsaInterval.Mid">func</a> (\*EsaInterval) [Mid](./esaMatcher.go?s=8472:8502#L347)
 ``` go
 func (i *EsaInterval) Mid() int
 ```
@@ -359,7 +365,7 @@ middle index which is the end of its first child.
 
 
 
-### <a name="EsaInterval.Start">func</a> (\*EsaInterval) [Start](https://github.com/dadidange/esaMatcher/blob/main/esaMatcher.go?s=8116:8148#L339)
+### <a name="EsaInterval.Start">func</a> (\*EsaInterval) [Start](./esaMatcher.go?s=8280:8312#L343)
 ``` go
 func (i *EsaInterval) Start() int
 ```
@@ -373,7 +379,4 @@ Starting index of the interval in the ESA.
 
 
 - - -
-This file was autogenerated using [godoc2md](http://godoc.org/github.com/davecheney/godoc2md)
-```
-godoc2md github.com/dadidange/esaMatcher > README.md
-```
+Generated by [godoc2md](http://godoc.org/github.com/davecheney/godoc2md)
